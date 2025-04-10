@@ -53,13 +53,13 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
 
         HabitDto habitDto = habit.toDto();
 
-        return CreatedAtAction(nameof(GetHabit), new { id = habitDto.Id}, habitDto);
+        return CreatedAtAction(nameof(GetHabit), new { id = habitDto.Id }, habitDto);
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateHabit(string id, UpdateHabitDto updateHabitDto)
     {
-        Habit habit = await dbContext.Habits.FirstOrDefaultAsync(h => h.Id == id);
+        Habit? habit = await dbContext.Habits.FirstOrDefaultAsync(h => h.Id == id);
 
         if (habit is null)
         {
@@ -76,7 +76,7 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
     [HttpPatch("{id}")]
     public async Task<ActionResult> PatchHabit(string id, JsonPatchDocument<HabitDto> patchDocument)
     {
-        Habit habit = await dbContext.Habits.FirstOrDefaultAsync(h => h.Id == id);
+        Habit? habit = await dbContext.Habits.FirstOrDefaultAsync(h => h.Id == id);
 
         if (habit is null)
         {
@@ -95,6 +95,22 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
         habit.Name = habitDto.Name;
         habit.Description = habitDto.Description;
         habit.UpdatedAtUtc = DateTime.UtcNow;
+
+        await dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteHabit(string id)
+    {
+        Habit? habit = await dbContext.Habits.FirstOrDefaultAsync(h => h.Id == id);
+        if (habit is null)
+        {
+            return NotFound();
+        }
+
+        dbContext.Habits.Remove(habit);
 
         await dbContext.SaveChangesAsync();
 
